@@ -1,0 +1,20 @@
+version: "3"
+services:
+  nginx:
+    environment:
+      VIRTUAL_HOST: testing.local
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./public:/app/public:ro
+
+  php:
+    volumes:
+      - ./:/app
+      - ./docker/www.conf:/usr/local/etc/php-fpm.d/www.conf:ro
+
+  node:
+    image: node:8-alpine
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: sh -c "yarn install && yarn run watch"

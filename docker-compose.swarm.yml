@@ -1,0 +1,61 @@
+version: "3"
+services:
+  db:
+    env_file: .env.mysql
+    restart: always
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 5
+        window: 120s
+
+  nginx:
+    image: ecr.com/my-laravel-app-nginx:1.0
+    restart: always
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 50M
+        reservations:
+          cpus: '0.25'
+          memory: 30M
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 5
+        window: 120s
+
+  php:
+    image: ecr.com/my-laravel-app-php:1.0
+    env_file: .env
+    restart: always
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 128M
+        reservations:
+          cpus: '0.25'
+          memory: 64M
+      restart_policy:
+        condition: any
+        window: 120s
+
+  node:
+    volumes:
+    - ./:/app
+    command: sh -c "yarn install && yarn run production"
+    deploy:
+      replicas: 0

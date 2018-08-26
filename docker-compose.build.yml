@@ -1,0 +1,20 @@
+version: "3"
+services:
+  assets:
+    image: node:8-alpine
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: sh -c "yarn install && yarn run production"
+
+  composer:
+    image: composer:1.7
+    working_dir: /app
+    environment:
+      SSH_AUTH_SOCK: /ssh-auth.sock
+    volumes:
+    - ./:/app
+    - "$SSH_AUTH_SOCK:/ssh-auth.sock"
+    - /etc/passwd:/etc/passwd:ro
+    - /etc/group:/etc/group:ro
+    command: composer install --ignore-platform-reqs --no-scripts

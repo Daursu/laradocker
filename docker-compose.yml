@@ -1,0 +1,40 @@
+version: "3"
+services:
+    redis:
+        image: redis:4.0-alpine
+        expose:
+            - "6379"
+
+    db:
+        image: mysql:8
+        ports:
+            - "3307:3306"
+        environment:
+            MYSQL_ROOT_PASSWORD: secret
+            MYSQL_DATABASE: laravel
+
+    nginx:
+        build:
+            context: .
+            dockerfile: ./docker/nginx.Dockerfile
+        depends_on:
+            - php
+        expose:
+            - 80
+        networks:
+            - reverse-proxy
+            - default
+
+    php:
+        build:
+            context: .
+            dockerfile: ./docker/php.Dockerfile
+        depends_on:
+            - redis
+            - db
+        expose:
+            - "9000"
+
+networks:
+    reverse-proxy:
+        external: true
