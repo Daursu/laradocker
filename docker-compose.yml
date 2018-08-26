@@ -12,11 +12,13 @@ services:
         environment:
             MYSQL_ROOT_PASSWORD: secret
             MYSQL_DATABASE: laravel
+        volumes:
+            - db-data:/var/lib/mysql
 
     nginx:
         build:
-            context: .
-            dockerfile: ./docker/nginx.Dockerfile
+            context: ./docker
+            dockerfile: nginx.Dockerfile
         depends_on:
             - php
         expose:
@@ -24,6 +26,8 @@ services:
         networks:
             - reverse-proxy
             - default
+        volumes:
+            - app-data:/app
 
     php:
         build:
@@ -34,7 +38,13 @@ services:
             - db
         expose:
             - "9000"
+        volumes:
+            - app-data:/app
 
 networks:
     reverse-proxy:
         external: true
+
+volumes:
+    app-data:
+    db-data:
