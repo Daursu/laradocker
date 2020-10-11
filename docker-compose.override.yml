@@ -1,20 +1,62 @@
-version: "3"
+version: "3.8"
 services:
+  redis:
+    image: redis:6.0-alpine
+    expose:
+      - "6379"
+
+  db:
+    image: mysql:8
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: laravel
+    volumes:
+      - db-data:/var/lib/mysql
+
   nginx:
     environment:
       VIRTUAL_HOST: testing.local
+    restart: "no"
+    ports:
+      - "8000:80"
     volumes:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./public:/app/public:ro
 
   php:
+    build:
+      target: dev
+    restart: "no"
+    ports:
+      - "8080:80"
+    depends_on:
+      - composer
+      - redis
+      - db
     volumes:
       - ./:/app
       - ./docker/www.conf:/usr/local/etc/php-fpm.d/www.conf:ro
 
   node:
-    image: node:8-alpine
+    image: node:12-alpine
     working_dir: /app
     volumes:
       - ./:/app
-    command: sh -c "yarn install && yarn run watch"
+    command: sh -c "npm install && npm run watch"
+
+  composer:
+    image: composer:1.10
+    working_dir: /app
+    environment:
+      SSH_AUTH_SOCK: /ssh-auth.sock
+    volumes:
+      - ./:/app
+      - "$SSH_AUTH_SOCK:/ssh-auth.sock"
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+    command: composer install --ignore-platform-reqs --no-scripts
+
+volumes:
+  db-data:
